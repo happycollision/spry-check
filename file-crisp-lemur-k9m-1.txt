@@ -1,0 +1,3 @@
+Content for: Add feature
+
+This is a detailed description of the feature.
