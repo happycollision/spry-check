@@ -1,0 +1,48 @@
+name: CI Check
+
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Slow down for SLOW_CI marker
+        run: |
+          echo "Checking commits for [SLOW_CI] marker..."
+
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+          SLOW_COMMITS=$(git log --format="%H %s" ${BASE_SHA}..${HEAD_SHA} | grep -i "\[SLOW_CI\]" || true)
+
+          if [ -n "$SLOW_COMMITS" ]; then
+            echo "Found commits with [SLOW_CI] marker; sleeping to hold the check pending:"
+            echo "$SLOW_COMMITS"
+            # 90s keeps this job registered-and-in-progress long enough for the
+            # sp land --poll doc tests to reliably observe a pending rollup and
+            # poll it a few times before it goes green.
+            sleep 90
+          fi
+
+      - name: Check for FAIL_CI marker
+        run: |
+          echo "Checking commits for [FAIL_CI] marker..."
+
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+
+          FAIL_COMMITS=$(git log --format="%H %s" ${BASE_SHA}..${HEAD_SHA} | grep -i "\[FAIL_CI\]" || true)
+
+          if [ -n "$FAIL_COMMITS" ]; then
+            echo "::error::Found commits with [FAIL_CI] marker:"
+            echo "$FAIL_COMMITS"
+            exit 1
+          fi
+
+          echo "All commits passed CI check."

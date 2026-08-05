@@ -1,0 +1,30 @@
+# spry-check
+
+<!-- spry-test-repo:v1 -->
+
+This repository is used for integration testing of [spry](https://github.com/happycollision/spry).
+
+## Purpose
+
+- Tests PR creation, updates, and merging workflows
+- Tests branch protection rule interactions
+- Provides deterministic CI pass/fail via commit message markers
+
+## CI Behavior
+
+The CI workflow in this repository:
+- **PASSES** for commits without special markers
+- **FAILS** for commits containing `[FAIL_CI]` in the subject line
+- **RUNS SLOWLY** (sleeps, staying registered-and-pending for a fixed window)
+  for commits containing `[SLOW_CI]` in the subject line — used by the
+  `sp land --poll` doc tests to reliably observe a PR whose checks are
+  registered but still running.
+
+## Do Not
+
+- Do not create manual PRs or branches in this repository
+- Do not modify the CI workflow without updating spry's test expectations
+- Do not add branch protection rules manually (tests manage this programmatically)
+
+---
+*This repository is automatically managed by spry integration tests.*
